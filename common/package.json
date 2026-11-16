@@ -1,0 +1,35 @@
+{
+    "name": "@llm-compare/common",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "main": "./src/index.ts",
+    "exports": {
+        ".": "./src/index.ts"
+    },
+    "scripts": {
+        "lint": "eslint .",
+        "lint:ci": "eslint . --format json --output-file eslint-report.json",
+        "lint:fix": "eslint . --fix",
+        "typecheck": "tsc --noEmit",
+        "typecheck:ci": "tsc --noEmit --pretty false > typecheck-report.txt 2>&1"
+    },
+    "lint-staged": {
+        "**/*.{ts,tsx,js,jsx}": [
+            "eslint --fix",
+            "prettier --write"
+        ],
+        "*.{json,css,md}": [
+            "prettier --write"
+        ],
+        "**/*.{json,css,md}": [
+            "prettier --write"
+        ]
+    },
+    "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "^8.72.2",
+        "@typescript-eslint/parser": "^8.72.2",
+        "eslint": "^10.15.0",
+        "typescript": "^6.0.3"
+    }
+}
