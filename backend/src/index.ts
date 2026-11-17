@@ -56,6 +56,11 @@ export const server = createServer((req: IncomingMessage, res: ServerResponse) =
 });
 
 if (process.env.NODE_ENV !== 'test') {
+    server.on('error', (err: Error) => {
+        logger.fatal({ err }, 'Ошибка HTTP-сервера');
+        process.exit(1);
+    });
+
     server.listen(port, () => {
         logger.info(`Backend запущен на http://localhost:${port}`);
     });
