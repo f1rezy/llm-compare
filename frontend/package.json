@@ -13,6 +13,18 @@
         "lint:fix": "eslint . --fix",
         "preview": "vite preview"
     },
+    "lint-staged": {
+        "**/*.{ts,tsx,js,jsx}": [
+            "eslint --fix",
+            "prettier --write"
+        ],
+        "*.{json,css,md}": [
+            "prettier --write"
+        ],
+        "**/*.{json,css,md}": [
+            "prettier --write"
+        ]
+    },
     "dependencies": {
         "@llm-compare/common": "^0.0.0",
         "react": "^19.3.1",
