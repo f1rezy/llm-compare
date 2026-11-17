@@ -4,8 +4,9 @@ import { sendJson, setCorsHeaders } from './pkg/server.ts';
 import { handlePing } from './routes/index.ts';
 import { routes } from './config/routes.ts';
 import { logger } from './pkg/logger.ts';
+import { BackendEnv } from './pkg/env.ts';
 
-const port = Number(process.env.PORT ?? 3001);
+const env = BackendEnv.getInstance();
 
 async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const { method } = req;
@@ -55,14 +56,14 @@ export const server = createServer((req: IncomingMessage, res: ServerResponse) =
     });
 });
 
-if (process.env.NODE_ENV !== 'test') {
+if (env.nodeEnv !== 'test') {
     server.on('error', (err: Error) => {
         logger.fatal({ err }, 'Ошибка HTTP-сервера');
         process.exit(1);
     });
 
-    server.listen(port, () => {
-        logger.info(`Backend запущен на http://localhost:${port}`);
+    server.listen(env.port, () => {
+        logger.info(`Backend запущен на http://localhost:${env.port}`);
     });
 
     function shutdown(signal: string): void {
