@@ -1,5 +1,6 @@
 import { useModels } from './hooks/useModels';
 import styles from './App.module.css';
+import {Comparison} from "./ui/Comparison/Comparison.tsx";
 
 function App() {
     const { state, reload } = useModels();
@@ -31,13 +32,14 @@ function App() {
                     </div>
                 )}
 
-                {state.status === 'success' && (
-                    <p className={styles.message}>
-                        {state.data.models.length > 0
-                            ? 'Выберите модели для сравнения'
-                            : 'Сейчас нет доступных моделей'}
-                    </p>
-                )}
+                {state.status === 'success' &&
+                    (state.data.models.length > 0 ? (
+                        <Comparison data={state.data} />
+                    ) : (
+                        <p className={styles.message}>
+                            Сейчас нет доступных моделей
+                        </p>
+                    ))}
             </main>
         </div>
     );
