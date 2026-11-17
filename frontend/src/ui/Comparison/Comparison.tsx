@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { ModelsData } from '@llm-compare/common';
 import { ModelSelector } from '../ModelSelector/ModelSelector';
 import styles from './Comparison.module.css';
+import {PromptInput} from "../PromptInput/PromptInput.tsx";
 
 interface ComparisonProps {
     data: ModelsData;
@@ -53,8 +54,16 @@ export function Comparison({ data }: ComparisonProps) {
         );
     }
 
+    const [prompt, setPrompt] = useState('');
+
     return (
         <section className={styles.root} aria-label="Сравнение моделей">
+            {prompt && (
+                <div className={styles.promptRow}>
+                    <p className={styles.prompt}>{prompt}</p>
+                </div>
+            )}
+
             <div className={styles.columns}>
                 {columns.map((column, index) => (
                     <section
@@ -73,7 +82,9 @@ export function Comparison({ data }: ComparisonProps) {
                         />
 
                         <div className={styles.placeholder}>
-                            Здесь появится ответ модели
+                            {prompt
+                                ? 'Генерация ответов пока не подключена'
+                                : 'Здесь появится ответ модели'}
                         </div>
                     </section>
                 ))}
@@ -83,11 +94,15 @@ export function Comparison({ data }: ComparisonProps) {
                     type="button"
                     onClick={addColumn}
                 >
-                    <span className={styles.addIcon} aria-hidden="true">
-                        +
-                    </span>
+                <span className={styles.addIcon} aria-hidden="true">
+                    +
+                </span>
                     Добавить модель
                 </button>
+            </div>
+
+            <div className={styles.composer}>
+                <PromptInput onSubmit={setPrompt} />
             </div>
         </section>
     );
