@@ -27,9 +27,31 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
 }
 
 export const server = createServer((req: IncomingMessage, res: ServerResponse) => {
-    handleRequest(req, res).catch((err: Error) => {
-        logger.error({ err: err.message }, 'Ошибка обработки запроса');
-        sendJson(res, 500, { success: false, error: 'Internal server error' });
+    handleRequest(req, res).catch((error: unknown) => {
+        const err = error instanceof Error ? error : new Error(String(error));
+
+        logger.error(
+            {
+                err,
+                method: req.method,
+                url: req.url,
+            },
+            'Ошибка обработки запроса'
+        );
+
+        if (res.destroyed || res.writableEnded) {
+            return;
+        }
+
+        if (res.headersSent) {
+            res.destroy();
+            return;
+        }
+
+        sendJson(res, 500, {
+            success: false,
+            error: 'Internal server error',
+        });
     });
 });
 
