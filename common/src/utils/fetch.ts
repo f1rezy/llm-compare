@@ -2,15 +2,9 @@ import type { ApiConstructor, ApiPayload, ApiResponse } from '../types/api.ts';
 
 type ApiDefinition = ApiConstructor<string, ApiPayload, ApiResponse>;
 
-export class HttpError extends Error {
-    readonly response: Response;
-
-    constructor(response: Response) {
-        super(`HTTP ${response.status}: ${response.statusText}`);
-        this.name = 'HttpError';
-        this.response = response;
-    }
-}
+type TypedResponse<T> = Omit<Response, 'json'> & {
+    json(): Promise<T>;
+};
 
 function preparePayload(options: ApiPayload): RequestInit {
     const { payload, body, headers: initialHeaders, ...rest } = options;
@@ -36,31 +30,18 @@ function preparePayload(options: ApiPayload): RequestInit {
 
     return {
         ...rest,
-        headers,
         body: requestBody,
+        headers,
     };
 }
 
 export async function fetchResponse<TApi extends ApiDefinition>(
     pathname: TApi['pathname'],
     options: TApi['payload']
-): Promise<Response> {
-    const response = await fetch(pathname, preparePayload(options));
-
-    if (!response.ok) {
-        throw new HttpError(response);
-    }
-
-    return response;
+): Promise<TypedResponse<TApi['response']>> {
+    return fetch(pathname, preparePayload(options));
 }
 
-/**
- * Запросить JSON данные
- * @typeParam TApi полное описание запроса
- * @param pathname Запрос
- * @param options Опции запроса
- * @returns Ответ запроса
- */
 export async function fetchJSON<TApi extends ApiDefinition>(
     pathname: TApi['pathname'],
     options: TApi['payload']
