@@ -1,10 +1,10 @@
 .app {
-    min-height: 100dvh;
     display: flex;
     flex-direction: column;
+    min-height: 100dvh;
 }
 
-.app-header {
+.header {
     display: flex;
     align-items: center;
     min-height: 64px;
@@ -12,7 +12,7 @@
     border-bottom: 1px solid var(--color-border);
 }
 
-.app-title {
+.title {
     margin: 0;
     font-size: 16px;
     font-weight: 600;
@@ -26,13 +26,14 @@
     padding: 16px;
 }
 
-.app-message {
+.message {
     margin: 48px 0;
     color: var(--color-text-muted);
     text-align: center;
 }
 
-.retry-button {
+.retryButton {
+    min-height: 44px;
     padding: 8px 14px;
     border: 1px solid var(--color-border);
     border-radius: 8px;
@@ -40,12 +41,12 @@
     background: var(--color-surface);
 }
 
-.retry-button:hover {
+.retryButton:hover {
     background: var(--color-surface-hover);
 }
 
 @media (min-width: 768px) {
-    .app-header {
+    .header {
         padding-inline: 32px;
     }
 

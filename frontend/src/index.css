@@ -1,7 +1,7 @@
 :root {
     font-family: Inter, system-ui, sans-serif;
-    color: #ededed;
-    background: #000;
+    color: var(--color-text);
+    background: var(--color-background);
     color-scheme: dark;
 
     font-synthesis: none;

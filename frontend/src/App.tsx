@@ -1,34 +1,38 @@
 import { useModels } from './hooks/useModels';
-import './App.css';
+import styles from './App.module.css';
 
 function App() {
     const { state, reload } = useModels();
 
     return (
-        <div className="app">
-            <header className="app-header">
-                <h1 className="app-title">LLM Compare</h1>
+        <div className={styles.app}>
+            <header className={styles.header}>
+                <h1 className={styles.title}>LLM Compare</h1>
             </header>
 
-            <main className="comparison">
+            <main className={styles.comparison}>
                 {state.status === 'loading' && (
-                    <p className="app-message" role="status">
+                    <p className={styles.message} role="status">
                         Загружаем модели…
                     </p>
                 )}
 
                 {state.status === 'error' && (
-                    <div className="app-message">
+                    <div className={styles.message}>
                         <p role="alert">{state.error}</p>
 
-                        <button className="retry-button" type="button" onClick={reload}>
+                        <button
+                            className={styles.retryButton}
+                            type="button"
+                            onClick={reload}
+                        >
                             Попробовать снова
                         </button>
                     </div>
                 )}
 
                 {state.status === 'success' && (
-                    <p className="app-message">
+                    <p className={styles.message}>
                         {state.data.models.length > 0
                             ? 'Выберите модели для сравнения'
                             : 'Сейчас нет доступных моделей'}
