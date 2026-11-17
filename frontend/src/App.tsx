@@ -1,6 +1,6 @@
 import { useModels } from './hooks/useModels';
 import styles from './App.module.css';
-import {Comparison} from "./ui/Comparison/Comparison.tsx";
+import { Comparison } from './ui/Comparison/Comparison.tsx';
 
 function App() {
     const { state, reload } = useModels();
@@ -22,11 +22,7 @@ function App() {
                     <div className={styles.message}>
                         <p role="alert">{state.error}</p>
 
-                        <button
-                            className={styles.retryButton}
-                            type="button"
-                            onClick={reload}
-                        >
+                        <button className={styles.retryButton} type="button" onClick={reload}>
                             Попробовать снова
                         </button>
                     </div>
@@ -36,9 +32,7 @@ function App() {
                     (state.data.models.length > 0 ? (
                         <Comparison data={state.data} />
                     ) : (
-                        <p className={styles.message}>
-                            Сейчас нет доступных моделей
-                        </p>
+                        <p className={styles.message}>Сейчас нет доступных моделей</p>
                     ))}
             </main>
         </div>

@@ -11,12 +11,12 @@ interface ModelSelectorProps {
 }
 
 export function ModelSelector({
-                                  models,
-                                  value,
-                                  onChange,
-                                  onRemove,
-                                  canRemove,
-                              }: ModelSelectorProps) {
+    models,
+    value,
+    onChange,
+    onRemove,
+    canRemove,
+}: ModelSelectorProps) {
     const selectId = useId();
 
     return (

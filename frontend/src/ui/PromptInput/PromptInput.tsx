@@ -6,10 +6,7 @@ interface PromptInputProps {
     disabled?: boolean;
 }
 
-export function PromptInput({
-                                onSubmit,
-                                disabled = false,
-                            }: PromptInputProps) {
+export function PromptInput({ onSubmit, disabled = false }: PromptInputProps) {
     const [value, setValue] = useState('');
 
     function handleSubmit(event: FormEvent<HTMLFormElement>) {
