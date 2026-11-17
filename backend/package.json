@@ -1,0 +1,43 @@
+{
+    "name": "@llm-compare/backend",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "node --import tsx --env-file=.env --watch src/index.ts",
+        "start": "node --import tsx --env-file=.env src/index.ts",
+        "typecheck": "tsc --noEmit",
+        "typecheck:ci": "tsc --noEmit --pretty false > typecheck-report.txt 2>&1",
+        "lint": "eslint .",
+        "lint:ci": "eslint . --format json --output-file eslint-report.json",
+        "lint:fix": "eslint . --fix"
+    },
+    "lint-staged": {
+        "**/*.{ts,tsx,js,jsx}": [
+            "eslint --fix",
+            "prettier --write"
+        ],
+        "*.{json,css,md}": [
+            "prettier --write"
+        ],
+        "**/*.{json,css,md}": [
+            "prettier --write"
+        ]
+    },
+    "devDependencies": {
+        "@eslint/js": "^10.0.1",
+        "@types/node": "^24.19.2",
+        "eslint": "^10.15.0",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-prettier": "^5.5.7",
+        "globals": "^17.14.0",
+        "pino-pretty": "^13.2.0",
+        "tsx": "^4.23.15",
+        "typescript": "^6.0.3",
+        "typescript-eslint": "^8.72.2"
+    },
+    "dependencies": {
+        "@llm-compare/common": "^0.0.0",
+        "pino": "^10.4.0"
+    }
+}
