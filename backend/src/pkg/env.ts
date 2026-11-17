@@ -69,7 +69,7 @@ export class BackendEnv {
         );
 
         const aiApiTimeoutMs = this.parsePositiveInteger(
-            env.AI_API_TIMEOUT_MS ?? '10000',
+            env.AI_API_TIMEOUT_MS ?? '120000',
             'AI_API_TIMEOUT_MS'
         );
 
