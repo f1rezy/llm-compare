@@ -29,7 +29,7 @@ export function Comparison({ data }: ComparisonProps) {
 
     const [prompt, setPrompt] = useState('');
 
-    const { states, isGenerating, generate, resetColumn } = useGeneration();
+    const { states, isGenerating, generate, retryColumn, resetColumn } = useGeneration();
 
     function addColumn() {
         const newColumn: Column = {
@@ -98,7 +98,10 @@ export function Comparison({ data }: ComparisonProps) {
                             canRemove={columns.length > 1}
                         />
 
-                        <ModelResponse state={states[column.id] ?? { status: 'idle' }} />
+                        <ModelResponse
+                            state={states[column.id] ?? { status: 'idle' }}
+                            onRetry={() => retryColumn(column, prompt)}
+                        />
                     </section>
                 ))}
 

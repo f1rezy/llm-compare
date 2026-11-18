@@ -5,7 +5,7 @@ import { generateText } from '../api/generation';
 export type GenerationState =
     | { status: 'idle' }
     | { status: 'loading' }
-    | { status: 'success'; data: GenerateData }
+    | { status: 'success'; data: GenerateData; durationMs: number }
     | { status: 'error'; error: string };
 
 interface GenerationColumn {
@@ -34,6 +34,7 @@ export function useGeneration() {
         controller: AbortController
     ) {
         const { signal } = controller;
+        const startedAt = performance.now();
 
         try {
             const response = await generateText(
@@ -50,7 +51,11 @@ export function useGeneration() {
 
             const state: GenerationState =
                 response.success && response.data
-                    ? { status: 'success', data: response.data }
+                    ? {
+                          status: 'success',
+                          data: response.data,
+                          durationMs: performance.now() - startedAt,
+                      }
                     : {
                           status: 'error',
                           error: response.error || 'Не удалось получить ответ модели',
@@ -108,6 +113,26 @@ export function useGeneration() {
         }
     }
 
+    function retryColumn(column: GenerationColumn, prompt: string) {
+        const text = prompt.trim();
+        const controllers = controllersRef.current;
+
+        if (!text || controllers.has(column.id)) {
+            return;
+        }
+
+        const controller = new AbortController();
+
+        controllers.set(column.id, controller);
+
+        setStates((previous) => ({
+            ...previous,
+            [column.id]: { status: 'loading' },
+        }));
+
+        void generateColumn(column, text, controller);
+    }
+
     function resetColumn(columnId: string) {
         controllersRef.current.get(columnId)?.abort();
         controllersRef.current.delete(columnId);
@@ -125,6 +150,7 @@ export function useGeneration() {
         states,
         isGenerating,
         generate,
+        retryColumn,
         resetColumn,
     };
 }

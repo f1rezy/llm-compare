@@ -1,11 +1,15 @@
 import type { GenerationState } from '../../hooks/useGeneration';
 import styles from './ModelResponse.module.css';
+import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { ResponseStats } from '../ResponseStats/ResponseStats';
 
 interface ModelResponseProps {
     state: GenerationState;
+    onRetry: () => void;
 }
 
-export function ModelResponse({ state }: ModelResponseProps) {
+export function ModelResponse({ state, onRetry }: ModelResponseProps) {
     switch (state.status) {
         case 'idle':
             return <div className={styles.message}>Здесь появится ответ модели</div>;
@@ -19,17 +23,43 @@ export function ModelResponse({ state }: ModelResponseProps) {
 
         case 'error':
             return (
-                <div className={styles.message} role="alert">
-                    {state.error}
+                <div className={styles.message}>
+                    <div className={styles.errorContent}>
+                        <p className={styles.errorText} role="alert">
+                            {state.error}
+                        </p>
+
+                        <button className={styles.retryButton} type="button" onClick={onRetry}>
+                            Попробовать снова
+                        </button>
+                    </div>
                 </div>
             );
 
         case 'success':
             return (
                 <div className={styles.response}>
-                    <p className={styles.text}>
-                        {state.data.text || 'Модель вернула пустой ответ'}
-                    </p>
+                    <div className={styles.markdown}>
+                        <Markdown
+                            remarkPlugins={[remarkGfm]}
+                            skipHtml
+                            components={{
+                                a: ({ href, children }) => (
+                                    <a href={href} target="_blank" rel="noopener noreferrer">
+                                        {children}
+                                    </a>
+                                ),
+                                table: ({ children }) => (
+                                    <div className={styles.tableWrapper}>
+                                        <table>{children}</table>
+                                    </div>
+                                ),
+                            }}
+                        >
+                            {state.data.text || 'Модель вернула пустой ответ'}
+                        </Markdown>
+                    </div>
+                    <ResponseStats usage={state.data.usage} durationMs={state.durationMs} />
                 </div>
             );
     }
