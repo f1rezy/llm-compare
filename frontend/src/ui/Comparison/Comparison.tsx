@@ -148,10 +148,11 @@ export function Comparison({ data }: ComparisonProps) {
 
                 {columns.length < MAX_COLUMNS &&
                     (isAddingModel ? (
-                        <div>
-                            <label>
+                        <div className={styles.modelPicker}>
+                            <label className={styles.modelPickerLabel}>
                                 Новая модель
                                 <select
+                                    className={styles.modelPickerSelect}
                                     value=""
                                     onChange={(event) => addColumn(event.currentTarget.value)}
                                 >
@@ -165,7 +166,12 @@ export function Comparison({ data }: ComparisonProps) {
                                     ))}
                                 </select>
                             </label>
-                            <button type="button" onClick={() => setIsAddingModel(false)}>
+
+                            <button
+                                className={styles.modelPickerCancel}
+                                type="button"
+                                onClick={() => setIsAddingModel(false)}
+                            >
                                 Отмена
                             </button>
                         </div>
