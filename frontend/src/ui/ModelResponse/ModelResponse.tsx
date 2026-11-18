@@ -1,5 +1,7 @@
 import type { GenerationState } from '../../hooks/useGeneration';
 import styles from './ModelResponse.module.css';
+import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface ModelResponseProps {
     state: GenerationState;
@@ -27,9 +29,26 @@ export function ModelResponse({ state }: ModelResponseProps) {
         case 'success':
             return (
                 <div className={styles.response}>
-                    <p className={styles.text}>
-                        {state.data.text || 'Модель вернула пустой ответ'}
-                    </p>
+                    <div className={styles.markdown}>
+                        <Markdown
+                            remarkPlugins={[remarkGfm]}
+                            skipHtml
+                            components={{
+                                a: ({ href, children }) => (
+                                    <a href={href} target="_blank" rel="noopener noreferrer">
+                                        {children}
+                                    </a>
+                                ),
+                                table: ({ children }) => (
+                                    <div className={styles.tableWrapper}>
+                                        <table>{children}</table>
+                                    </div>
+                                ),
+                            }}
+                        >
+                            {state.data.text || 'Модель вернула пустой ответ'}
+                        </Markdown>
+                    </div>
                 </div>
             );
     }
