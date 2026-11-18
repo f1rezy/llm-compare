@@ -113,6 +113,26 @@ export function useGeneration() {
         }
     }
 
+    function retryColumn(column: GenerationColumn, prompt: string) {
+        const text = prompt.trim();
+        const controllers = controllersRef.current;
+
+        if (!text || controllers.has(column.id)) {
+            return;
+        }
+
+        const controller = new AbortController();
+
+        controllers.set(column.id, controller);
+
+        setStates((previous) => ({
+            ...previous,
+            [column.id]: { status: 'loading' },
+        }));
+
+        void generateColumn(column, text, controller);
+    }
+
     function resetColumn(columnId: string) {
         controllersRef.current.get(columnId)?.abort();
         controllersRef.current.delete(columnId);
@@ -130,6 +150,7 @@ export function useGeneration() {
         states,
         isGenerating,
         generate,
+        retryColumn,
         resetColumn,
     };
 }

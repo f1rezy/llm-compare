@@ -6,9 +6,10 @@ import { ResponseStats } from '../ResponseStats/ResponseStats';
 
 interface ModelResponseProps {
     state: GenerationState;
+    onRetry: () => void;
 }
 
-export function ModelResponse({ state }: ModelResponseProps) {
+export function ModelResponse({ state, onRetry }: ModelResponseProps) {
     switch (state.status) {
         case 'idle':
             return <div className={styles.message}>Здесь появится ответ модели</div>;
@@ -22,8 +23,16 @@ export function ModelResponse({ state }: ModelResponseProps) {
 
         case 'error':
             return (
-                <div className={styles.message} role="alert">
-                    {state.error}
+                <div className={styles.message}>
+                    <div className={styles.errorContent}>
+                        <p className={styles.errorText} role="alert">
+                            {state.error}
+                        </p>
+
+                        <button className={styles.retryButton} type="button" onClick={onRetry}>
+                            Попробовать снова
+                        </button>
+                    </div>
                 </div>
             );
 
