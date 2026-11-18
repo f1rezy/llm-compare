@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import type { ModelsData } from '@llm-compare/common';
+import { useGeneration } from '../../hooks/useGeneration';
 import { ModelSelector } from '../ModelSelector/ModelSelector';
+import { ModelResponse } from '../ModelResponse/ModelResponse';
+import { PromptInput } from '../PromptInput/PromptInput';
 import styles from './Comparison.module.css';
-import { PromptInput } from '../PromptInput/PromptInput.tsx';
 
 interface ComparisonProps {
     data: ModelsData;
@@ -25,6 +27,10 @@ export function Comparison({ data }: ComparisonProps) {
         },
     ]);
 
+    const [prompt, setPrompt] = useState('');
+
+    const { states, isGenerating, generate, resetColumn } = useGeneration();
+
     function addColumn() {
         const newColumn: Column = {
             id: crypto.randomUUID(),
@@ -35,18 +41,39 @@ export function Comparison({ data }: ComparisonProps) {
     }
 
     function changeModel(columnId: string, modelId: string) {
+        const column = columns.find((item) => item.id === columnId);
+
+        if (!column || column.modelId === modelId) {
+            return;
+        }
+
+        resetColumn(columnId);
+
         setColumns((previous) =>
-            previous.map((column) => (column.id === columnId ? { ...column, modelId } : column))
+            previous.map((item) => (item.id === columnId ? { ...item, modelId } : item))
         );
     }
 
     function removeColumn(columnId: string) {
-        setColumns((previous) =>
-            previous.length > 1 ? previous.filter((column) => column.id !== columnId) : previous
-        );
+        if (columns.length <= 1) {
+            return;
+        }
+
+        resetColumn(columnId);
+
+        setColumns((previous) => previous.filter((column) => column.id !== columnId));
     }
 
-    const [prompt, setPrompt] = useState('');
+    function handleSubmit(value: string) {
+        const nextPrompt = value.trim();
+
+        if (!nextPrompt || isGenerating) {
+            return;
+        }
+
+        setPrompt(nextPrompt);
+        generate(columns, nextPrompt);
+    }
 
     return (
         <section className={styles.root} aria-label="Сравнение моделей">
@@ -71,11 +98,7 @@ export function Comparison({ data }: ComparisonProps) {
                             canRemove={columns.length > 1}
                         />
 
-                        <div className={styles.placeholder}>
-                            {prompt
-                                ? 'Генерация ответов пока не подключена'
-                                : 'Здесь появится ответ модели'}
-                        </div>
+                        <ModelResponse state={states[column.id] ?? { status: 'idle' }} />
                     </section>
                 ))}
 
@@ -88,7 +111,7 @@ export function Comparison({ data }: ComparisonProps) {
             </div>
 
             <div className={styles.composer}>
-                <PromptInput onSubmit={setPrompt} />
+                <PromptInput onSubmit={handleSubmit} disabled={isGenerating} />
             </div>
         </section>
     );
