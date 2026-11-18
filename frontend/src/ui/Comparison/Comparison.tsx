@@ -6,6 +6,7 @@ import { ModelResponse } from '../ModelResponse/ModelResponse';
 import { PromptInput } from '../PromptInput/PromptInput';
 import styles from './Comparison.module.css';
 
+const MIN_COLUMNS = 2;
 const MAX_COLUMNS = 4;
 
 interface ComparisonProps {
@@ -131,13 +132,15 @@ export function Comparison({ data }: ComparisonProps) {
                         data-active={column.id === activeColumnId}
                         aria-label={`Колонка ${index + 1}`}
                     >
-                        <ModelSelector
-                            models={data.models}
-                            value={column.modelId}
-                            onChange={(modelId) => changeModel(column.id, modelId)}
-                            onRemove={() => removeColumn(column.id)}
-                            canRemove={columns.length > 1}
-                        />
+                        <header className={styles.columnHeader}>
+                            <ModelSelector
+                                models={data.models}
+                                value={column.modelId}
+                                onChange={(modelId) => changeModel(column.id, modelId)}
+                                onRemove={() => removeColumn(column.id)}
+                                canRemove={columns.length > MIN_COLUMNS}
+                            />
+                        </header>
 
                         <ModelResponse
                             state={states[column.id] ?? { status: 'idle' }}
