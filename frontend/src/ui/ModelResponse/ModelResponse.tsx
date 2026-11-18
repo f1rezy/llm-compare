@@ -2,6 +2,7 @@ import type { GenerationState } from '../../hooks/useGeneration';
 import styles from './ModelResponse.module.css';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { ResponseStats } from '../ResponseStats/ResponseStats';
 
 interface ModelResponseProps {
     state: GenerationState;
@@ -49,6 +50,7 @@ export function ModelResponse({ state }: ModelResponseProps) {
                             {state.data.text || 'Модель вернула пустой ответ'}
                         </Markdown>
                     </div>
+                    <ResponseStats usage={state.data.usage} durationMs={state.durationMs} />
                 </div>
             );
     }

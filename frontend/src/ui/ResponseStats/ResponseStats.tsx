@@ -1,0 +1,42 @@
+import type { TokenUsage } from '@llm-compare/common';
+import styles from './ResponseStats.module.css';
+
+interface ResponseStatsProps {
+    usage: TokenUsage;
+    durationMs: number;
+}
+
+const tokenFormatter = new Intl.NumberFormat('ru-RU');
+
+const durationFormatter = new Intl.NumberFormat('ru-RU', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+});
+
+export function ResponseStats({ usage, durationMs }: ResponseStatsProps) {
+    const metrics = [
+        { label: 'Входные токены', value: usage.inputTokens },
+        { label: 'Выходные токены', value: usage.outputTokens },
+        { label: 'Всего токенов', value: usage.totalTokens },
+        { label: 'Токены рассуждений', value: usage.reasoningTokens },
+        { label: 'Входные из кэша', value: usage.cachedInputTokens },
+    ];
+
+    return (
+        <dl className={styles.stats} aria-label="Статистика ответа">
+            <div className={styles.item}>
+                <dt>Время ответа</dt>
+                <dd>{durationFormatter.format(durationMs / 1000)} с</dd>
+            </div>
+
+            {metrics.map(({ label, value }) =>
+                value !== undefined ? (
+                    <div className={styles.item} key={label}>
+                        <dt>{label}</dt>
+                        <dd>{tokenFormatter.format(value)}</dd>
+                    </div>
+                ) : null
+            )}
+        </dl>
+    );
+}
