@@ -1,6 +1,14 @@
-import { useId } from 'react';
 import type { Model } from '@llm-compare/common';
 import styles from './ModelSelector.module.css';
+
+const providerNames = new Map([
+    ['openai', 'OpenAI'],
+    ['anthropic', 'Anthropic'],
+    ['google', 'Google'],
+    ['deepseek', 'DeepSeek'],
+    ['moonshotai', 'Moonshot AI'],
+    ['spacexai', 'SpaceXAI'],
+]);
 
 interface ModelSelectorProps {
     models: Model[];
@@ -17,18 +25,18 @@ export function ModelSelector({
     onRemove,
     canRemove,
 }: ModelSelectorProps) {
-    const selectId = useId();
+    const separatorIndex = value.indexOf('/');
+    const providerId = separatorIndex > 0 ? value.slice(0, separatorIndex) : '';
+    const providerName = providerNames.get(providerId) ?? providerId;
 
     return (
         <div className={styles.selector}>
             <div className={styles.field}>
-                <label className={styles.label} htmlFor={selectId}>
-                    Модель
-                </label>
+                {providerName && <span className={styles.provider}>{providerName}</span>}
 
                 <select
                     className={styles.input}
-                    id={selectId}
+                    aria-label="Модель"
                     value={value}
                     onChange={(event) => onChange(event.target.value)}
                 >
