@@ -75,7 +75,7 @@ export function Comparison({ data }: ComparisonProps) {
     }
 
     function removeColumn(columnId: string) {
-        if (columns.length <= 1) {
+        if (columns.length <= MIN_COLUMNS) {
             return;
         }
 
