@@ -19,16 +19,6 @@
     scroll-snap-align: start;
 }
 
-.placeholder {
-    display: grid;
-    place-items: center;
-    min-height: 240px;
-    padding: 24px 16px;
-    color: var(--color-text-muted);
-    text-align: center;
-    font-size: 14px;
-}
-
 .addButton {
     display: flex;
     flex-direction: column;
@@ -63,10 +53,6 @@
 @media (min-width: 768px) {
     .column {
         flex: 1 0 280px;
-    }
-
-    .placeholder {
-        min-height: 360px;
     }
 }
 

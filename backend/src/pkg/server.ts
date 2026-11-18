@@ -1,4 +1,8 @@
 import type { ServerResponse } from 'node:http';
+import type { IncomingMessage } from 'node:http';
+import { HttpError } from './http-error.ts';
+
+const MAX_BODY_BYTES = 64 * 1024;
 
 export function setCorsHeaders(res: ServerResponse): void {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -19,4 +23,46 @@ export function sendJson(res: ServerResponse, statusCode: number, data: unknown)
     });
 
     res.end(body);
+}
+
+export function readBody(req: IncomingMessage): Promise<unknown> {
+    return new Promise((resolve, reject) => {
+        let raw = '';
+        let size = 0;
+        let exceeded = false;
+
+        req.setEncoding('utf8');
+
+        req.on('data', (chunk: string) => {
+            if (exceeded) {
+                return;
+            }
+
+            size += Buffer.byteLength(chunk, 'utf8');
+
+            if (size > MAX_BODY_BYTES) {
+                exceeded = true;
+                raw = '';
+                reject(new HttpError(413, 'Тело запроса слишком большое'));
+                return;
+            }
+
+            raw += chunk;
+        });
+
+        req.on('end', () => {
+            if (exceeded) {
+                return;
+            }
+
+            try {
+                const body: unknown = raw ? JSON.parse(raw) : {};
+                resolve(body);
+            } catch {
+                reject(new HttpError(400, 'Неверный формат JSON'));
+            }
+        });
+
+        req.on('error', reject);
+    });
 }
