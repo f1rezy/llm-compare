@@ -19,3 +19,9 @@ export type GenerateApi = ApiConstructor<
     ApiPayload<'POST', GenerateRequest>,
     ApiResponse<GenerateData>
 >;
+
+export type GenerateStreamApi = ApiConstructor<
+    '/api/stream',
+    ApiPayload<'POST', GenerateRequest>,
+    ApiResponse<never>
+>;

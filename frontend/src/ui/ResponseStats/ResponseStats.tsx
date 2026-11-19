@@ -4,6 +4,10 @@ import styles from './ResponseStats.module.css';
 interface ResponseStatsProps {
     usage: TokenUsage;
     durationMs: number;
+    firstChunkMs?: number;
+    isFastest: boolean;
+    isCheapest: boolean;
+    estimatedCostUsd?: number;
 }
 
 const tokenFormatter = new Intl.NumberFormat('ru-RU');
@@ -13,7 +17,21 @@ const durationFormatter = new Intl.NumberFormat('ru-RU', {
     maximumFractionDigits: 1,
 });
 
-export function ResponseStats({ usage, durationMs }: ResponseStatsProps) {
+const costFormatter = new Intl.NumberFormat('ru-RU', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 8,
+});
+
+export function ResponseStats({
+    usage,
+    durationMs,
+    firstChunkMs,
+    isFastest,
+    isCheapest,
+    estimatedCostUsd,
+}: ResponseStatsProps) {
     const metrics = [
         { label: 'Входные токены', value: usage.inputTokens },
         { label: 'Выходные токены', value: usage.outputTokens },
@@ -26,7 +44,27 @@ export function ResponseStats({ usage, durationMs }: ResponseStatsProps) {
         <dl className={styles.stats} aria-label="Статистика ответа">
             <div className={styles.item}>
                 <dt>Время ответа</dt>
-                <dd>{durationFormatter.format(durationMs / 1000)} с</dd>
+                <dd>
+                    {durationFormatter.format(durationMs / 1000)} с
+                    {isFastest && <span className={styles.highlight}>Самый быстрый</span>}
+                </dd>
+            </div>
+
+            {firstChunkMs !== undefined && (
+                <div className={styles.item}>
+                    <dt>До начала ответа</dt>
+                    <dd>{durationFormatter.format(firstChunkMs / 1000)} с</dd>
+                </div>
+            )}
+
+            <div className={styles.item}>
+                <dt>Оценка стоимости</dt>
+                <dd>
+                    {estimatedCostUsd === undefined
+                        ? 'Недоступна'
+                        : costFormatter.format(estimatedCostUsd)}
+                    {isCheapest && <span className={styles.highlight}>Самый дешёвый</span>}
+                </dd>
             </div>
 
             {metrics.map(({ label, value }) =>
