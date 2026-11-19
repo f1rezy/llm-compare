@@ -6,10 +6,11 @@ import { ResponseStats } from '../ResponseStats/ResponseStats';
 
 interface ModelResponseProps {
     state: GenerationState;
+    isFastest: boolean;
     onRetry: () => void;
 }
 
-export function ModelResponse({ state, onRetry }: ModelResponseProps) {
+export function ModelResponse({ state, isFastest, onRetry }: ModelResponseProps) {
     switch (state.status) {
         case 'idle':
             return <div className={styles.message}>Здесь появится ответ модели</div>;
@@ -62,6 +63,7 @@ export function ModelResponse({ state, onRetry }: ModelResponseProps) {
                     <ResponseStats
                         usage={state.data.usage}
                         durationMs={state.durationMs}
+                        isFastest={isFastest}
                         estimatedCostUsd={state.data.estimatedCostUsd}
                     />
                 </div>

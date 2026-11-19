@@ -4,6 +4,7 @@ import styles from './ResponseStats.module.css';
 interface ResponseStatsProps {
     usage: TokenUsage;
     durationMs: number;
+    isFastest: boolean;
     estimatedCostUsd?: number;
 }
 
@@ -21,7 +22,12 @@ const costFormatter = new Intl.NumberFormat('ru-RU', {
     maximumFractionDigits: 8,
 });
 
-export function ResponseStats({ usage, durationMs, estimatedCostUsd }: ResponseStatsProps) {
+export function ResponseStats({
+    usage,
+    durationMs,
+    isFastest,
+    estimatedCostUsd,
+}: ResponseStatsProps) {
     const metrics = [
         { label: 'Входные токены', value: usage.inputTokens },
         { label: 'Выходные токены', value: usage.outputTokens },
@@ -34,7 +40,10 @@ export function ResponseStats({ usage, durationMs, estimatedCostUsd }: ResponseS
         <dl className={styles.stats} aria-label="Статистика ответа">
             <div className={styles.item}>
                 <dt>Время ответа</dt>
-                <dd>{durationFormatter.format(durationMs / 1000)} с</dd>
+                <dd>
+                    {durationFormatter.format(durationMs / 1000)} с
+                    {isFastest && <span className={styles.highlight}>Самый быстрый</span>}
+                </dd>
             </div>
 
             <div className={styles.item}>

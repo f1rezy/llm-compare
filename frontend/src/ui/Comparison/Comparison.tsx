@@ -44,6 +44,19 @@ export function Comparison({ data }: ComparisonProps) {
 
     const { states, isGenerating, generate, retryColumn, resetColumn } = useGeneration();
 
+    const successfulResponses = Object.entries(states).flatMap(([columnId, state]) =>
+        state?.status === 'success' ? [{ columnId, durationMs: state.durationMs }] : []
+    );
+
+    const fastestDurationMs =
+        !isGenerating && successfulResponses.length >= 2
+            ? Math.min(...successfulResponses.map(({ durationMs }) => durationMs))
+            : undefined;
+
+    const fastestColumnIds = successfulResponses
+        .filter(({ durationMs }) => durationMs === fastestDurationMs)
+        .map(({ columnId }) => columnId);
+
     const columnsRef = useRef<HTMLDivElement>(null);
     const columnsRowRef = useRef<HTMLDivElement>(null);
     const [hasMoreBelow, setHasMoreBelow] = useState(false);
@@ -174,6 +187,7 @@ export function Comparison({ data }: ComparisonProps) {
 
                                 <ModelResponse
                                     state={states[column.id] ?? { status: 'idle' }}
+                                    isFastest={fastestColumnIds.includes(column.id)}
                                     onRetry={() => retryColumn(column, prompt)}
                                 />
                             </section>
