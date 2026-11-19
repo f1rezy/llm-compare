@@ -5,6 +5,7 @@ interface ResponseStatsProps {
     usage: TokenUsage;
     durationMs: number;
     isFastest: boolean;
+    isCheapest: boolean;
     estimatedCostUsd?: number;
 }
 
@@ -26,6 +27,7 @@ export function ResponseStats({
     usage,
     durationMs,
     isFastest,
+    isCheapest,
     estimatedCostUsd,
 }: ResponseStatsProps) {
     const metrics = [
@@ -52,6 +54,7 @@ export function ResponseStats({
                     {estimatedCostUsd === undefined
                         ? 'Недоступна'
                         : costFormatter.format(estimatedCostUsd)}
+                    {isCheapest && <span className={styles.highlight}>Самый дешёвый</span>}
                 </dd>
             </div>
 

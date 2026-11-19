@@ -45,7 +45,9 @@ export function Comparison({ data }: ComparisonProps) {
     const { states, isGenerating, generate, retryColumn, resetColumn } = useGeneration();
 
     const successfulResponses = Object.entries(states).flatMap(([columnId, state]) =>
-        state?.status === 'success' ? [{ columnId, durationMs: state.durationMs }] : []
+        state?.status === 'success'
+            ? [{ columnId, durationMs: state.durationMs, costUsd: state.data.estimatedCostUsd }]
+            : []
     );
 
     const fastestDurationMs =
@@ -55,6 +57,19 @@ export function Comparison({ data }: ComparisonProps) {
 
     const fastestColumnIds = successfulResponses
         .filter(({ durationMs }) => durationMs === fastestDurationMs)
+        .map(({ columnId }) => columnId);
+
+    const pricedResponses = successfulResponses.flatMap(({ columnId, costUsd }) =>
+        costUsd === undefined ? [] : [{ columnId, costUsd }]
+    );
+
+    const lowestCostUsd =
+        !isGenerating && pricedResponses.length >= 2
+            ? Math.min(...pricedResponses.map(({ costUsd }) => costUsd))
+            : undefined;
+
+    const cheapestColumnIds = pricedResponses
+        .filter(({ costUsd }) => costUsd === lowestCostUsd)
         .map(({ columnId }) => columnId);
 
     const columnsRef = useRef<HTMLDivElement>(null);
@@ -188,6 +203,7 @@ export function Comparison({ data }: ComparisonProps) {
                                 <ModelResponse
                                     state={states[column.id] ?? { status: 'idle' }}
                                     isFastest={fastestColumnIds.includes(column.id)}
+                                    isCheapest={cheapestColumnIds.includes(column.id)}
                                     onRetry={() => retryColumn(column, prompt)}
                                 />
                             </section>
