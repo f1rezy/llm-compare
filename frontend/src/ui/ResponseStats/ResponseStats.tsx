@@ -4,6 +4,7 @@ import styles from './ResponseStats.module.css';
 interface ResponseStatsProps {
     usage: TokenUsage;
     durationMs: number;
+    estimatedCostUsd?: number;
 }
 
 const tokenFormatter = new Intl.NumberFormat('ru-RU');
@@ -13,7 +14,14 @@ const durationFormatter = new Intl.NumberFormat('ru-RU', {
     maximumFractionDigits: 1,
 });
 
-export function ResponseStats({ usage, durationMs }: ResponseStatsProps) {
+const costFormatter = new Intl.NumberFormat('ru-RU', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 8,
+});
+
+export function ResponseStats({ usage, durationMs, estimatedCostUsd }: ResponseStatsProps) {
     const metrics = [
         { label: 'Входные токены', value: usage.inputTokens },
         { label: 'Выходные токены', value: usage.outputTokens },
@@ -27,6 +35,15 @@ export function ResponseStats({ usage, durationMs }: ResponseStatsProps) {
             <div className={styles.item}>
                 <dt>Время ответа</dt>
                 <dd>{durationFormatter.format(durationMs / 1000)} с</dd>
+            </div>
+
+            <div className={styles.item}>
+                <dt>Оценка стоимости</dt>
+                <dd>
+                    {estimatedCostUsd === undefined
+                        ? 'Недоступна'
+                        : costFormatter.format(estimatedCostUsd)}
+                </dd>
             </div>
 
             {metrics.map(({ label, value }) =>

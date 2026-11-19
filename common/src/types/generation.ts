@@ -14,4 +14,5 @@ export interface TokenUsage {
 export interface GenerateData {
     text: string;
     usage: TokenUsage;
+    estimatedCostUsd?: number;
 }

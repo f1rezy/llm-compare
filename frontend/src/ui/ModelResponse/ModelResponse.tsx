@@ -59,7 +59,11 @@ export function ModelResponse({ state, onRetry }: ModelResponseProps) {
                             {state.data.text || 'Модель вернула пустой ответ'}
                         </Markdown>
                     </div>
-                    <ResponseStats usage={state.data.usage} durationMs={state.durationMs} />
+                    <ResponseStats
+                        usage={state.data.usage}
+                        durationMs={state.durationMs}
+                        estimatedCostUsd={state.data.estimatedCostUsd}
+                    />
                 </div>
             );
     }
