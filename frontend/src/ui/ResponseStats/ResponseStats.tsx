@@ -4,6 +4,7 @@ import styles from './ResponseStats.module.css';
 interface ResponseStatsProps {
     usage: TokenUsage;
     durationMs: number;
+    firstChunkMs?: number;
     isFastest: boolean;
     isCheapest: boolean;
     estimatedCostUsd?: number;
@@ -26,6 +27,7 @@ const costFormatter = new Intl.NumberFormat('ru-RU', {
 export function ResponseStats({
     usage,
     durationMs,
+    firstChunkMs,
     isFastest,
     isCheapest,
     estimatedCostUsd,
@@ -47,6 +49,13 @@ export function ResponseStats({
                     {isFastest && <span className={styles.highlight}>Самый быстрый</span>}
                 </dd>
             </div>
+
+            {firstChunkMs !== undefined && (
+                <div className={styles.item}>
+                    <dt>До начала ответа</dt>
+                    <dd>{durationFormatter.format(firstChunkMs / 1000)} с</dd>
+                </div>
+            )}
 
             <div className={styles.item}>
                 <dt>Оценка стоимости</dt>

@@ -14,6 +14,12 @@
     padding: 20px 16px;
 }
 
+.progress {
+    margin: 12px 0 0;
+    color: var(--color-text-muted);
+    font-size: 12px;
+}
+
 .markdown {
     min-width: 0;
     color: var(--color-text);

@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GenerateData } from '@llm-compare/common';
-import { generateText } from '../api/generation';
+import { streamText } from '../api/generation';
 
 export type GenerationState =
     | { status: 'idle' }
-    | { status: 'loading' }
-    | { status: 'success'; data: GenerateData; durationMs: number }
+    | { status: 'loading'; text: string }
+    | { status: 'success'; data: GenerateData; durationMs: number; firstChunkMs?: number }
     | { status: 'error'; error: string };
 
 interface GenerationColumn {
@@ -36,47 +36,55 @@ export function useGeneration() {
         const { signal } = controller;
         const startedAt = performance.now();
 
-        try {
-            const response = await generateText(
-                {
-                    prompt,
-                    model: column.modelId,
-                },
-                signal
+        let text = '';
+        let firstChunkMs: number | undefined;
+
+        function updateColumn(state: GenerationState) {
+            setStates((previous) =>
+                signal.aborted ? previous : { ...previous, [column.id]: state }
             );
+        }
 
-            if (signal.aborted) {
-                return;
+        try {
+            const events = streamText({ prompt, model: column.modelId }, signal);
+
+            for await (const event of events) {
+                if (signal.aborted) {
+                    return;
+                }
+
+                switch (event.type) {
+                    case 'text-delta':
+                        if (event.delta) {
+                            firstChunkMs ??= performance.now() - startedAt;
+                            text += event.delta;
+                            updateColumn({ status: 'loading', text });
+                        }
+                        break;
+                    case 'finish':
+                        updateColumn({
+                            status: 'success',
+                            data: {
+                                text,
+                                usage: event.usage,
+                                estimatedCostUsd: event.estimatedCostUsd,
+                            },
+                            durationMs: performance.now() - startedAt,
+                            firstChunkMs,
+                        });
+                        return;
+                    case 'error':
+                        updateColumn({ status: 'error', error: event.message });
+                        return;
+                }
             }
-
-            const state: GenerationState =
-                response.success && response.data
-                    ? {
-                          status: 'success',
-                          data: response.data,
-                          durationMs: performance.now() - startedAt,
-                      }
-                    : {
-                          status: 'error',
-                          error: response.error || 'Не удалось получить ответ модели',
-                      };
-
-            setStates((previous) => ({
-                ...previous,
-                [column.id]: state,
-            }));
         } catch {
-            if (signal.aborted) {
-                return;
-            }
-
-            setStates((previous) => ({
-                ...previous,
-                [column.id]: {
+            if (!signal.aborted) {
+                updateColumn({
                     status: 'error',
                     error: 'Не удалось выполнить запрос. Попробуйте ещё раз.',
-                },
-            }));
+                });
+            }
         } finally {
             if (controllersRef.current.get(column.id) === controller) {
                 controllersRef.current.delete(column.id);
@@ -99,7 +107,7 @@ export function useGeneration() {
         const nextStates: GenerationStates = {};
 
         for (const column of columns) {
-            nextStates[column.id] = { status: 'loading' };
+            nextStates[column.id] = { status: 'loading', text: '' };
         }
 
         setStates(nextStates);
@@ -127,7 +135,7 @@ export function useGeneration() {
 
         setStates((previous) => ({
             ...previous,
-            [column.id]: { status: 'loading' },
+            [column.id]: { status: 'loading', text: '' },
         }));
 
         void generateColumn(column, text, controller);
