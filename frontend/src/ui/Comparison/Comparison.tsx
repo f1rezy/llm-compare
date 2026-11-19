@@ -125,71 +125,73 @@ export function Comparison({ data }: ComparisonProps) {
             </div>
 
             <div className={styles.columns}>
-                {columns.map((column, index) => (
-                    <section
-                        className={styles.column}
-                        key={column.id}
-                        data-active={column.id === activeColumnId}
-                        aria-label={`Колонка ${index + 1}`}
-                    >
-                        <header className={styles.columnHeader}>
-                            <ModelSelector
-                                models={data.models}
-                                value={column.modelId}
-                                onChange={(modelId) => changeModel(column.id, modelId)}
-                                onRemove={() => removeColumn(column.id)}
-                                canRemove={columns.length > MIN_COLUMNS}
-                            />
-                        </header>
-
-                        <ModelResponse
-                            state={states[column.id] ?? { status: 'idle' }}
-                            onRetry={() => retryColumn(column, prompt)}
-                        />
-                    </section>
-                ))}
-
-                {columns.length < MAX_COLUMNS &&
-                    (isAddingModel ? (
-                        <div className={styles.modelPicker}>
-                            <label className={styles.modelPickerLabel}>
-                                Новая модель
-                                <select
-                                    className={styles.modelPickerSelect}
-                                    value=""
-                                    onChange={(event) => addColumn(event.currentTarget.value)}
-                                >
-                                    <option value="" disabled>
-                                        Выберите модель
-                                    </option>
-                                    {data.models.map((model) => (
-                                        <option key={model.id} value={model.id}>
-                                            {model.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
-
-                            <button
-                                className={styles.modelPickerCancel}
-                                type="button"
-                                onClick={() => setIsAddingModel(false)}
-                            >
-                                Отмена
-                            </button>
-                        </div>
-                    ) : (
-                        <button
-                            className={styles.addButton}
-                            type="button"
-                            onClick={() => setIsAddingModel(true)}
+                <div className={styles.columnsRow}>
+                    {columns.map((column, index) => (
+                        <section
+                            className={styles.column}
+                            key={column.id}
+                            data-active={column.id === activeColumnId}
+                            aria-label={`Колонка ${index + 1}`}
                         >
-                            <span className={styles.addIcon} aria-hidden="true">
-                                +
-                            </span>
-                            Добавить модель
-                        </button>
+                            <header className={styles.columnHeader}>
+                                <ModelSelector
+                                    models={data.models}
+                                    value={column.modelId}
+                                    onChange={(modelId) => changeModel(column.id, modelId)}
+                                    onRemove={() => removeColumn(column.id)}
+                                    canRemove={columns.length > MIN_COLUMNS}
+                                />
+                            </header>
+
+                            <ModelResponse
+                                state={states[column.id] ?? { status: 'idle' }}
+                                onRetry={() => retryColumn(column, prompt)}
+                            />
+                        </section>
                     ))}
+
+                    {columns.length < MAX_COLUMNS &&
+                        (isAddingModel ? (
+                            <div className={styles.modelPicker}>
+                                <label className={styles.modelPickerLabel}>
+                                    Новая модель
+                                    <select
+                                        className={styles.modelPickerSelect}
+                                        value=""
+                                        onChange={(event) => addColumn(event.currentTarget.value)}
+                                    >
+                                        <option value="" disabled>
+                                            Выберите модель
+                                        </option>
+                                        {data.models.map((model) => (
+                                            <option key={model.id} value={model.id}>
+                                                {model.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </label>
+
+                                <button
+                                    className={styles.modelPickerCancel}
+                                    type="button"
+                                    onClick={() => setIsAddingModel(false)}
+                                >
+                                    Отмена
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                className={styles.addButton}
+                                type="button"
+                                onClick={() => setIsAddingModel(true)}
+                            >
+                                <span className={styles.addIcon} aria-hidden="true">
+                                    +
+                                </span>
+                                Добавить модель
+                            </button>
+                        ))}
+                </div>
             </div>
 
             <div className={styles.composer}>

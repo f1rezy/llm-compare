@@ -31,9 +31,12 @@
 }
 
 .columns {
+    padding: 4px 4px 16px;
+}
+
+.columnsRow {
     display: grid;
     gap: 12px;
-    padding: 4px 4px 16px;
 }
 
 .column {
@@ -51,9 +54,12 @@
     }
 
     .columns {
-        display: flex;
         max-height: 65dvh;
         overflow: auto;
+    }
+
+    .columnsRow {
+        display: flex;
     }
 
     .column {
@@ -133,6 +139,7 @@
     .addButton {
         flex: 0 0 140px;
         flex-direction: column;
+        align-self: start;
         min-height: 160px;
     }
 
