@@ -14,30 +14,45 @@ interface GenerationColumn {
     modelId: string;
 }
 
+interface ActiveGeneration {
+    controller: AbortController;
+    receivedText: string;
+}
+
 type GenerationStates = Partial<Record<string, GenerationState>>;
+
+const REVEAL_INTERVAL_MS = 40;
+
+function revealNextWords(visibleText: string, receivedText: string): string {
+    const remaining = receivedText.slice(visibleText.length);
+    const nextWords = remaining.match(/^(?:\s*\S+\s+){1,3}/u)?.[0];
+
+    return visibleText + (nextWords ?? '');
+}
 
 export function useGeneration() {
     const [states, setStates] = useState<GenerationStates>({});
-    const controllersRef = useRef(new Map<string, AbortController>());
+    const requestsRef = useRef(new Map<string, ActiveGeneration>());
 
     useEffect(() => {
-        const controllers = controllersRef.current;
+        const requests = requestsRef.current;
 
         return () => {
-            controllers.forEach((controller) => controller.abort());
-            controllers.clear();
+            requests.forEach(({ controller }) => controller.abort());
+            requests.clear();
         };
     }, []);
 
     async function generateColumn(
         column: GenerationColumn,
         prompt: string,
-        controller: AbortController
+        request: ActiveGeneration
     ) {
-        const { signal } = controller;
+        const { signal } = request.controller;
         const startedAt = performance.now();
 
-        let text = '';
+        let visibleText = '';
+        let revealTimer: number | undefined;
         let firstChunkMs: number | undefined;
 
         function updateColumn(state: GenerationState) {
@@ -45,6 +60,32 @@ export function useGeneration() {
                 signal.aborted ? previous : { ...previous, [column.id]: state }
             );
         }
+
+        function clearRevealTimer() {
+            window.clearTimeout(revealTimer);
+            revealTimer = undefined;
+        }
+
+        function scheduleReveal() {
+            if (revealTimer !== undefined || signal.aborted) {
+                return;
+            }
+
+            const nextText = revealNextWords(visibleText, request.receivedText);
+
+            if (nextText === visibleText) {
+                return;
+            }
+
+            revealTimer = window.setTimeout(() => {
+                revealTimer = undefined;
+                visibleText = nextText;
+                updateColumn({ status: 'loading', text: visibleText });
+                scheduleReveal();
+            }, REVEAL_INTERVAL_MS);
+        }
+
+        signal.addEventListener('abort', clearRevealTimer, { once: true });
 
         try {
             const events = streamText({ prompt, model: column.modelId }, signal);
@@ -59,15 +100,16 @@ export function useGeneration() {
                     case 'text-delta':
                         if (event.delta) {
                             firstChunkMs ??= performance.now() - startedAt;
-                            text += event.delta;
-                            updateColumn({ status: 'loading', text });
+                            request.receivedText += event.delta;
+                            scheduleReveal();
                         }
                         break;
                     case 'finish':
+                        clearRevealTimer();
                         finalState = {
                             status: 'success',
                             data: {
-                                text,
+                                text: request.receivedText,
                                 usage: event.usage,
                                 estimatedCostUsd: event.estimatedCostUsd,
                             },
@@ -76,6 +118,7 @@ export function useGeneration() {
                         };
                         break;
                     case 'error':
+                        clearRevealTimer();
                         finalState = { status: 'error', error: event.message };
                         break;
                 }
@@ -92,8 +135,11 @@ export function useGeneration() {
                 });
             }
         } finally {
-            if (controllersRef.current.get(column.id) === controller) {
-                controllersRef.current.delete(column.id);
+            clearRevealTimer();
+            signal.removeEventListener('abort', clearRevealTimer);
+
+            if (requestsRef.current.get(column.id) === request) {
+                requestsRef.current.delete(column.id);
             }
         }
     }
@@ -105,10 +151,10 @@ export function useGeneration() {
             return;
         }
 
-        const controllers = controllersRef.current;
+        const requests = requestsRef.current;
 
-        controllers.forEach((controller) => controller.abort());
-        controllers.clear();
+        requests.forEach(({ controller }) => controller.abort());
+        requests.clear();
 
         const nextStates: GenerationStates = {};
 
@@ -119,49 +165,52 @@ export function useGeneration() {
         setStates(nextStates);
 
         for (const column of columns) {
-            const controller = new AbortController();
+            const request = { controller: new AbortController(), receivedText: '' };
 
-            controllers.set(column.id, controller);
+            requests.set(column.id, request);
 
-            void generateColumn(column, text, controller);
+            void generateColumn(column, text, request);
         }
     }
 
     function retryColumn(column: GenerationColumn, prompt: string) {
         const text = prompt.trim();
-        const controllers = controllersRef.current;
+        const requests = requestsRef.current;
 
-        if (!text || controllers.has(column.id)) {
+        if (!text || requests.has(column.id)) {
             return;
         }
 
-        const controller = new AbortController();
+        const request = { controller: new AbortController(), receivedText: '' };
 
-        controllers.set(column.id, controller);
+        requests.set(column.id, request);
 
         setStates((previous) => ({
             ...previous,
             [column.id]: { status: 'loading', text: '' },
         }));
 
-        void generateColumn(column, text, controller);
+        void generateColumn(column, text, request);
     }
 
     function stopGeneration() {
-        const controllers = controllersRef.current;
-        const activeColumnIds = [...controllers.keys()];
+        const requests = requestsRef.current;
+        const receivedByColumn = Array.from(requests, ([columnId, { receivedText }]) => ({
+            columnId,
+            receivedText,
+        }));
 
-        controllers.forEach((controller) => controller.abort());
-        controllers.clear();
+        requests.forEach(({ controller }) => controller.abort());
+        requests.clear();
 
         setStates((previous) => {
             const next = { ...previous };
 
-            for (const columnId of activeColumnIds) {
+            for (const { columnId, receivedText } of receivedByColumn) {
                 const state = previous[columnId];
 
                 if (state?.status === 'loading') {
-                    next[columnId] = { status: 'stopped', text: state.text };
+                    next[columnId] = { status: 'stopped', text: receivedText };
                 }
             }
 
@@ -170,8 +219,8 @@ export function useGeneration() {
     }
 
     function resetColumn(columnId: string) {
-        controllersRef.current.get(columnId)?.abort();
-        controllersRef.current.delete(columnId);
+        requestsRef.current.get(columnId)?.controller.abort();
+        requestsRef.current.delete(columnId);
 
         setStates((previous) => {
             const next = { ...previous };
