@@ -1,7 +1,7 @@
 import { createServer } from 'node:http';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { sendJson, setCorsHeaders } from './pkg/server.ts';
-import { handlePing, handleModels, handleGenerate } from './routes/index.ts';
+import { handlePing, handleModels, handleGenerate, handleStream } from './routes/index.ts';
 import { routes } from './config/routes.ts';
 import { logger } from './pkg/logger.ts';
 import { BackendEnv } from './pkg/env.ts';
@@ -30,6 +30,10 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
 
     if (method === 'POST' && pathname === routes.GENERATE) {
         return handleGenerate(req, res);
+    }
+
+    if (method === 'POST' && pathname === routes.STREAM) {
+        return handleStream(req, res);
     }
 
     sendJson(res, 404, { success: false, error: 'Not found' });

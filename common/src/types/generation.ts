@@ -16,3 +16,8 @@ export interface GenerateData {
     usage: TokenUsage;
     estimatedCostUsd?: number;
 }
+
+export type GenerateStreamEvent =
+    | { type: 'text-delta'; delta: string }
+    | { type: 'finish'; usage: TokenUsage; estimatedCostUsd?: number }
+    | { type: 'error'; message: string };
