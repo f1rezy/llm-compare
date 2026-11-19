@@ -5,6 +5,7 @@ import { streamText } from '../api/generation';
 export type GenerationState =
     | { status: 'idle' }
     | { status: 'loading'; text: string }
+    | { status: 'stopped'; text: string }
     | { status: 'success'; data: GenerateData; durationMs: number; firstChunkMs?: number }
     | { status: 'error'; error: string };
 
@@ -47,6 +48,7 @@ export function useGeneration() {
 
         try {
             const events = streamText({ prompt, model: column.modelId }, signal);
+            let finalState: GenerationState | undefined;
 
             for await (const event of events) {
                 if (signal.aborted) {
@@ -62,7 +64,7 @@ export function useGeneration() {
                         }
                         break;
                     case 'finish':
-                        updateColumn({
+                        finalState = {
                             status: 'success',
                             data: {
                                 text,
@@ -71,12 +73,16 @@ export function useGeneration() {
                             },
                             durationMs: performance.now() - startedAt,
                             firstChunkMs,
-                        });
-                        return;
+                        };
+                        break;
                     case 'error':
-                        updateColumn({ status: 'error', error: event.message });
-                        return;
+                        finalState = { status: 'error', error: event.message };
+                        break;
                 }
+            }
+
+            if (finalState) {
+                updateColumn(finalState);
             }
         } catch {
             if (!signal.aborted) {
@@ -141,6 +147,28 @@ export function useGeneration() {
         void generateColumn(column, text, controller);
     }
 
+    function stopGeneration() {
+        const controllers = controllersRef.current;
+        const activeColumnIds = [...controllers.keys()];
+
+        controllers.forEach((controller) => controller.abort());
+        controllers.clear();
+
+        setStates((previous) => {
+            const next = { ...previous };
+
+            for (const columnId of activeColumnIds) {
+                const state = previous[columnId];
+
+                if (state?.status === 'loading') {
+                    next[columnId] = { status: 'stopped', text: state.text };
+                }
+            }
+
+            return next;
+        });
+    }
+
     function resetColumn(columnId: string) {
         controllersRef.current.get(columnId)?.abort();
         controllersRef.current.delete(columnId);
@@ -158,6 +186,7 @@ export function useGeneration() {
         states,
         isGenerating,
         generate,
+        stopGeneration,
         retryColumn,
         resetColumn,
     };

@@ -3,18 +3,20 @@ import styles from './PromptInput.module.css';
 
 interface PromptInputProps {
     onSubmit: (prompt: string) => void;
-    disabled?: boolean;
+    onStop: () => void;
+    isGenerating: boolean;
 }
 
-export function PromptInput({ onSubmit, disabled = false }: PromptInputProps) {
+export function PromptInput({ onSubmit, onStop, isGenerating }: PromptInputProps) {
     const [value, setValue] = useState('');
+    const actionLabel = isGenerating ? 'Остановить генерацию' : 'Отправить запрос';
 
     function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
         const prompt = value.trim();
 
-        if (!prompt || disabled) {
+        if (!prompt || isGenerating) {
             return;
         }
 
@@ -31,17 +33,18 @@ export function PromptInput({ onSubmit, disabled = false }: PromptInputProps) {
                 rows={2}
                 value={value}
                 onChange={(event) => setValue(event.target.value)}
-                disabled={disabled}
+                disabled={isGenerating}
             />
 
             <button
                 className={styles.submit}
-                type="submit"
-                disabled={disabled || !value.trim()}
-                aria-label="Отправить запрос"
-                title="Отправить запрос"
+                type={isGenerating ? 'button' : 'submit'}
+                onClick={isGenerating ? onStop : undefined}
+                disabled={!isGenerating && !value.trim()}
+                aria-label={actionLabel}
+                title={actionLabel}
             >
-                <span aria-hidden="true">↑</span>
+                <span aria-hidden="true">{isGenerating ? '■' : '↑'}</span>
             </button>
         </form>
     );

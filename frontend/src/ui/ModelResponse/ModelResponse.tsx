@@ -32,15 +32,16 @@ export function ModelResponse({ state, isFastest, isCheapest, onRetry }: ModelRe
         );
     }
 
-    if (state.status === 'loading' && !state.text) {
+    const text = state.status === 'success' ? state.data.text : state.text;
+    const progressLabel = state.status === 'stopped' ? 'Остановлено' : 'Генерируем ответ…';
+
+    if (state.status !== 'success' && !text) {
         return (
             <div className={styles.message} role="status">
-                Генерируем ответ…
+                {progressLabel}
             </div>
         );
     }
-
-    const text = state.status === 'loading' ? state.text : state.data.text;
 
     return (
         <div className={styles.response}>
@@ -64,11 +65,7 @@ export function ModelResponse({ state, isFastest, isCheapest, onRetry }: ModelRe
                     {text || 'Модель вернула пустой ответ'}
                 </Markdown>
             </div>
-            {state.status === 'loading' ? (
-                <p className={styles.progress} role="status">
-                    Генерируем ответ…
-                </p>
-            ) : (
+            {state.status === 'success' ? (
                 <ResponseStats
                     usage={state.data.usage}
                     durationMs={state.durationMs}
@@ -77,6 +74,10 @@ export function ModelResponse({ state, isFastest, isCheapest, onRetry }: ModelRe
                     isCheapest={isCheapest}
                     estimatedCostUsd={state.data.estimatedCostUsd}
                 />
+            ) : (
+                <p className={styles.progress} role="status">
+                    {progressLabel}
+                </p>
             )}
         </div>
     );

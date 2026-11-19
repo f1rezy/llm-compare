@@ -42,7 +42,8 @@ export function Comparison({ data }: ComparisonProps) {
 
     const [prompt, setPrompt] = useState('');
 
-    const { states, isGenerating, generate, retryColumn, resetColumn } = useGeneration();
+    const { states, isGenerating, generate, stopGeneration, retryColumn, resetColumn } =
+        useGeneration();
 
     const successfulResponses = Object.entries(states).flatMap(([columnId, state]) =>
         state?.status === 'success'
@@ -259,7 +260,11 @@ export function Comparison({ data }: ComparisonProps) {
             </div>
 
             <div className={styles.composer}>
-                <PromptInput onSubmit={handleSubmit} disabled={isGenerating} />
+                <PromptInput
+                    onSubmit={handleSubmit}
+                    onStop={stopGeneration}
+                    isGenerating={isGenerating}
+                />
             </div>
         </section>
     );
